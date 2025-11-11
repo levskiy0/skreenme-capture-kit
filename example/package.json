@@ -1,0 +1,19 @@
+{
+  "name": "skreenme-capture-kit-example",
+  "version": "1.0.0",
+  "description": "Electron example for skreenme-capture-kit",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "@levskiy0/skreenme-capture-kit": "file:.."
+  }
+}

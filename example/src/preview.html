@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; height: 100vh; overflow: hidden; }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .controls { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 5px; }
+    button { padding: 5px 10px; border: 1px solid #fff; background: rgba(0,0,0,0.5); color: #fff; cursor: pointer; }
+    .status { position: absolute; top: 10px; left: 10px; padding: 5px 10px; background: rgba(0,0,0,0.5); color: #fff; font-size: 12px; }
+    .error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: #f00; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="status" id="status">Initializing camera...</div>
+  <video id="video" autoplay playsinline></video>
+
+  <div class="controls">
+    <button onclick="toggleCamera()">Switch</button>
+    <span id="cameraInfo" style="color: white; font-size: 11px;"></span>
+    <button onclick="window.close()">Close</button>
+  </div>
+
+  <script src="preview-renderer.js"></script>
+</body>
+</html>

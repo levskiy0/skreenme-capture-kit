@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkreenmeCaptureKIT Example</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; padding: 20px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 { margin-bottom: 10px; }
+    .subtitle { color: #666; margin-bottom: 20px; font-size: 14px; }
+    .status-bar { padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; margin-right: 10px; }
+    .status-dot.ready { background: #0a0; }
+    .status-dot.recording { background: #f00; }
+    .section { margin-bottom: 20px; }
+    .section-title { font-weight: bold; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+    .card { padding: 10px; border: 1px solid #ddd; cursor: pointer; }
+    .card.selected { border-color: #000; background: #f0f0f0; }
+    .card-title { font-weight: bold; margin-bottom: 5px; }
+    .card-subtitle { font-size: 12px; color: #666; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    button { padding: 10px 20px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #000; color: #fff; }
+    .btn-danger { background: #f00; color: #fff; border-color: #f00; }
+    .btn-secondary { background: #f0f0f0; }
+    .recording-info { padding: 10px; margin-bottom: 20px; border: 1px solid #000; display: none; }
+    .recording-info.active { display: block; }
+    .timer { font-size: 20px; font-family: monospace; }
+    .log { background: #000; color: #fff; padding: 10px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+    .log-entry { margin-bottom: 5px; }
+    .log-entry.error { color: #f88; }
+    .log-entry.success { color: #8f8; }
+    .settings-group { display: flex; gap: 15px; margin-bottom: 10px; }
+    label { display: flex; align-items: center; gap: 5px; }
+    select { padding: 5px; border: 1px solid #ddd; }
+    .permissions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .permission-card { padding: 15px; border: 1px solid #ddd; text-align: center; }
+    .permission-card.granted { border-color: #0a0; background: #efe; }
+    .permission-card.denied { border-color: #f00; background: #fee; }
+    .permission-name { font-weight: bold; margin-bottom: 5px; }
+    .permission-status { font-size: 11px; padding: 2px 8px; display: inline-block; margin-top: 5px; }
+    .permission-status.granted { background: #0a0; color: #fff; }
+    .permission-status.denied { background: #f00; color: #fff; }
+    .permission-status.unknown { background: #999; color: #fff; }
+    .selection-indicator { font-size: 11px; padding: 2px 8px; margin-left: 10px; background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SkreenmeCaptureKIT Example</h1>
+    <p class="subtitle">Record your screen and camera</p>
+
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Initializing...</span>
+    </div>
+
+    <div class="recording-info" id="recordingInfo">
+      <strong>Recording...</strong>
+      <div class="timer" id="timer">00:00:00</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">System Permissions</div>
+      <div class="permissions-grid">
+        <div class="permission-card" id="screenPermission">
+          <div class="permission-name">Screen Recording</div>
+          <div class="permission-status unknown" id="screenStatus">Checking...</div>
+        </div>
+        <div class="permission-card" id="cameraPermission">
+          <div class="permission-name">Camera</div>
+          <div class="permission-status unknown" id="cameraStatus">Checking...</div>
+        </div>
+        <div class="permission-card" id="micPermission">
+          <div class="permission-name">Microphone</div>
+          <div class="permission-status unknown" id="micStatus">Checking...</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" id="permissionsBtn" onclick="requestAllPermissions()">Request Permissions</button>
+        <button class="btn-secondary" onclick="refreshPermissions()">Refresh</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" id="refreshBtn" onclick="refreshSources()">Refresh Sources</button>
+      <button class="btn-secondary" id="previewBtn" onclick="togglePreview()" disabled>Camera Preview</button>
+      <button class="btn-secondary" onclick="openRecordingsFolder()">Open Folder</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        Recording Settings
+        <span id="selectionSummary" style="font-size: 14px; font-weight: normal; color: #666;"></span>
+      </div>
+      <div class="settings-group">
+        <label>
+          <input type="checkbox" id="showCursor" checked>
+          Show Cursor
+        </label>
+        <label>
+          Frame Rate:
+          <select id="frameRate">
+            <option value="30" selected>30 FPS</option>
+            <option value="60">60 FPS</option>
+          </select>
+        </label>
+        <label>
+          Camera Format:
+          <select id="cameraFormat">
+            <option value="square" selected>Square (1:1)</option>
+            <option value="wide">Wide (16:9)</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        Displays
+        <span class="selection-indicator" id="displayIndicator" style="display: none;">Selected</span>
+      </div>
+      <div class="grid" id="displaysList"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        Cameras
+        <span class="selection-indicator" id="cameraIndicator" style="display: none;">Selected</span>
+      </div>
+      <div class="grid" id="camerasList"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        Audio Devices
+        <span class="selection-indicator" id="audioIndicator" style="display: none;">Selected</span>
+      </div>
+      <div class="grid" id="audioList"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" id="startBtn" onclick="startRecording()" disabled>Start Recording</button>
+      <button class="btn-danger" id="stopBtn" onclick="stopRecording()" disabled>Stop Recording</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Console Log</div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
