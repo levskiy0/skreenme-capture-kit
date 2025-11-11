@@ -1,0 +1,24 @@
+# Source files (we ship dist/)
+src/**/*.ts
+!src/native/**
+
+# Development files
+tsconfig.json
+.gitignore
+.DS_Store
+.idea
+*.log
+
+# Swift build artifacts (except the binary)
+src/native/.build
+src/native/.swiftpm
+.clang-module-cache
+
+# Legacy and temp
+legacy
+CALUDE.md
+
+# Test files
+test
+*.test.js
+*.spec.js

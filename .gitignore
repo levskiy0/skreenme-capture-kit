@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+bin
+*.log
+
+# Swift build
+src/native/.build
+src/native/.swiftpm
+.clang-module-cache
+
+# IDE
+.DS_Store
+.idea
+*.swp
+*.swo
+*~
+
+# Temp files
+CALUDE.md
+legacy
+
+example.js

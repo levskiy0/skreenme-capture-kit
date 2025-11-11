@@ -1,0 +1,52 @@
+{
+  "name": "@levskiy0/skreenme-capture-kit",
+  "version": "1.0.0",
+  "description": "Native macOS screen, window, and camera capture module with audio support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "skreenme-capture": "bin/SkreenmeCaptureKIT"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "src/native"
+  ],
+  "scripts": {
+    "build:swift": "cd src/native && swift build -c release && cd ../.. && mkdir -p bin && cp src/native/.build/release/SkreenmeCaptureKIT bin/",
+    "build:ts": "tsc",
+    "build": "npm run build:swift && npm run build:ts",
+    "clean": "rm -rf dist bin src/native/.build",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "screen-capture",
+    "screen-recording",
+    "macos",
+    "native",
+    "swift",
+    "video-capture",
+    "camera",
+    "audio",
+    "recording"
+  ],
+  "author": "levskiy0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/levskiy0/skreenme-capture-kit.git"
+  },
+  "os": [
+    "darwin"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {},
+  "dependencies": {}
+}
