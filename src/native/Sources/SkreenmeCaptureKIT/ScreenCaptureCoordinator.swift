@@ -180,11 +180,86 @@ final class ScreenCaptureCoordinator: NSObject {
             )
         }
 
-        let cameraDevices = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInWideAngleCamera, .externalUnknown],
-            mediaType: .video,
-            position: .unspecified
-        ).devices.map { device in
+        // Include all camera types including Continuity Camera
+        var deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .externalUnknown]
+
+        // Add Continuity Camera support for macOS 14.0+
+        if #available(macOS 14.0, *) {
+            deviceTypes.append(.continuityCamera)
+        }
+
+        // Collect all unique devices by trying different positions
+        var allDevicesDict: [String: AVCaptureDevice] = [:]
+
+        for position in [AVCaptureDevice.Position.unspecified, .front, .back] {
+            let devices = AVCaptureDevice.DiscoverySession(
+                deviceTypes: deviceTypes,
+                mediaType: .video,
+                position: position
+            ).devices
+
+            for device in devices {
+                allDevicesDict[device.uniqueID] = device
+            }
+        }
+
+        let allDevices = Array(allDevicesDict.values)
+
+        // Log all discovered devices for debugging
+        for device in allDevices {
+            var positionStr = "unspecified"
+            switch device.position {
+            case .front: positionStr = "front"
+            case .back: positionStr = "back"
+            default: break
+            }
+            fputs("[Swift] Camera: '\(device.localizedName)' id=\(device.uniqueID) position=\(positionStr) type=\(device.deviceType.rawValue)\n", stderr)
+        }
+
+        // Filter out duplicate Continuity Cameras
+        // When iPhone is connected via Continuity Camera, macOS redirects the built-in
+        // Mac camera (FaceTime HD Camera) to show the iPhone camera instead.
+        // This creates a duplicate where both the External iPhone camera and the
+        // BuiltIn Mac camera show the same iPhone feed.
+        //
+        // Strategy: If there's any External/Continuity camera that contains "iPhone" in the name,
+        // filter out "FaceTime HD Camera" (BuiltIn) as it's likely redirected to the iPhone.
+        var filteredDevices: [AVCaptureDevice] = []
+        var hasIPhoneContinuityCamera = false
+
+        // Check if there's an iPhone Continuity Camera
+        for device in allDevices {
+            let isExternal = device.deviceType == .externalUnknown
+            var isContinuity = false
+            if #available(macOS 14.0, *) {
+                isContinuity = device.deviceType == .continuityCamera
+            }
+
+            if (isExternal || isContinuity) && device.localizedName.contains("iPhone") {
+                hasIPhoneContinuityCamera = true
+                fputs("[Swift] Detected iPhone Continuity Camera: '\(device.localizedName)'\n", stderr)
+                break
+            }
+        }
+
+        // Filter devices
+        for device in allDevices {
+            let isBuiltInFaceTime = device.deviceType == .builtInWideAngleCamera &&
+                                   device.localizedName.contains("FaceTime")
+
+            // Skip FaceTime HD Camera if iPhone Continuity Camera is present
+            // (it's redirected to iPhone and will be a duplicate)
+            if hasIPhoneContinuityCamera && isBuiltInFaceTime {
+                fputs("[Swift] Filtering out '\(device.localizedName)' (redirected to iPhone Continuity Camera)\n", stderr)
+                continue
+            }
+
+            filteredDevices.append(device)
+        }
+
+        fputs("[Swift] === After filtering: \(filteredDevices.count) unique cameras ===\n", stderr)
+
+        let cameraDevices = filteredDevices.map { device in
             SourceListingPayload.Camera(
                 id: device.uniqueID,
                 name: device.localizedName
@@ -396,6 +471,16 @@ final class ScreenCaptureCoordinator: NSObject {
 
         // Convert mouse events to JSONValue
         let eventsJSON = try convertEventsToJSON(snapshotMouseEvents())
+
+        // Save events to JSON file next to the video
+        let eventsFileURL = outputURL.deletingPathExtension().appendingPathExtension("events.json")
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: snapshotMouseEvents(), options: [.prettyPrinted])
+            try jsonData.write(to: eventsFileURL)
+            fputs("[Swift] Saved \(snapshotMouseEvents().count) events to \(eventsFileURL.path)\n", stderr)
+        } catch {
+            fputs("[Swift] Warning: Failed to save events.json: \(error)\n", stderr)
+        }
 
         // Build response
         let metadata = StopSessionResponse.RecordingMetadata(
