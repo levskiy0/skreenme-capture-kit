@@ -17,6 +17,7 @@ src/native/.swiftpm
 # Legacy and temp
 legacy
 CALUDE.md
+example
 
 # Test files
 test
