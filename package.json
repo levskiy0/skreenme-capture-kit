@@ -10,7 +10,8 @@
   "files": [
     "dist",
     "bin",
-    "src/native"
+    "src/native/Package.swift",
+    "src/native/Sources"
   ],
   "scripts": {
     "build:swift": "cd src/native && swift build -c release && cd ../.. && mkdir -p bin && cp src/native/.build/release/SkreenmeCaptureKIT bin/",

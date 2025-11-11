@@ -25,17 +25,29 @@ Native macOS screen, window, and camera capture module with audio support. Built
 npm install @levskiy0/skreenme-capture-kit
 ```
 
+The package includes a pre-built Swift binary, so no additional build steps are required for normal usage.
+
 ### Building from Source
 
-If you need to build the native Swift component:
+If you need to rebuild the native Swift component (e.g., after modifying the source code):
 
 ```bash
+# Navigate to the package directory
+cd node_modules/@levskiy0/skreenme-capture-kit
+
+# Build Swift binary and compile TypeScript
 npm run build
+
+# Or build components separately:
+npm run build:swift  # Build only Swift binary
+npm run build:ts     # Build only TypeScript
 ```
 
 This will:
 1. Build the Swift binary (`SkreenmeCaptureKIT`)
 2. Compile TypeScript to JavaScript
+
+**Note:** Building from source requires Xcode Command Line Tools to be installed.
 
 ## License
 
