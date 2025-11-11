@@ -114,9 +114,10 @@ export interface ConfigureAudioParams {
 }
 
 export interface PermissionsStatus {
-  screen: boolean;
-  camera: boolean;
-  microphone: boolean;
+  screenRecording: boolean;
+  camera: string;  // "granted" | "denied" | "prompt" | "unknown"
+  microphone: string;  // "granted" | "denied" | "prompt" | "unknown"
+  accessibility: boolean;
 }
 
 export interface SkreenmeCaptureKITOptions {
